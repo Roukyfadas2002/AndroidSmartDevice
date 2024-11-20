@@ -26,6 +26,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidSmartDevice">
         <activity
+            android:name=".BluetoothService"
+            android:exported="false"
+            android:label="@string/title_activity_bluetooth_service"
+            android:theme="@style/Theme.AndroidSmartDevice" />
+        <activity
             android:name=".LedControle"
             android:exported="false"
             android:label="@string/title_activity_led_controle"
