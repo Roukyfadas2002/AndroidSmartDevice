@@ -148,6 +148,7 @@ fun ScanBleScreen(
         ) {
             Button(
                 onClick = { onScanButtonClick() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.size(150.dp)
             ) {
                 Image(

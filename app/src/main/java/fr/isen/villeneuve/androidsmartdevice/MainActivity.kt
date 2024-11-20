@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -131,7 +132,13 @@ fun PresentationScreen(onStartClicked: () -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(onClick = onStartClicked) {
+        Button(
+            onClick = onStartClicked,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Magenta, // couleur de fond du bouton
+                contentColor = Color.White // couleur du texte sur le bouton
+            )
+        ) {
             Text(text = "Commencer")
         }
     }

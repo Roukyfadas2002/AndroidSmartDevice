@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,11 +33,9 @@ class DeviceConnectionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Récupérer les données envoyées depuis ScanActivity
         val deviceName = intent.getStringExtra("deviceName")
         val deviceAddress = intent.getStringExtra("deviceAddress")
 
-        // Initialiser l'appareil Bluetooth
         bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
 
         setContent {
@@ -90,8 +87,6 @@ class DeviceConnectionActivity : ComponentActivity() {
         Log.d("BLE", "Disconnected from device.")
         isConnected = false
         Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
-
-        // Retourner à la page précédente
         finish()
     }
 
@@ -103,7 +98,6 @@ class DeviceConnectionActivity : ComponentActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // Handle missing permission
                 return
             }
             bluetoothGatt?.writeCharacteristic(ledCharacteristic)
@@ -123,26 +117,22 @@ class DeviceConnectionActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Top
         ) {
             Text("Device Connection Status", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text("Device Name: ${deviceName ?: "Unknown"}", fontSize = 18.sp)
             Text("Device Address: ${deviceAddress ?: "Unknown"}", fontSize = 18.sp)
-
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Connection status indicator
             Text(
                 text = if (isConnected) "Connected" else "Disconnected",
                 color = if (isConnected) Color.Green else Color.Red,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = { connectToDevice() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Connect to Device")
@@ -152,6 +142,7 @@ class DeviceConnectionActivity : ComponentActivity() {
 
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_1) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn On LED 1")
@@ -161,6 +152,7 @@ class DeviceConnectionActivity : ComponentActivity() {
 
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_2) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn On LED 2")
@@ -170,6 +162,7 @@ class DeviceConnectionActivity : ComponentActivity() {
 
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_3) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn On LED 3")
@@ -179,6 +172,7 @@ class DeviceConnectionActivity : ComponentActivity() {
 
             Button(
                 onClick = { writeToLEDCharacteristic(LEDStateEnum.NONE) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Turn Off LED")
@@ -188,6 +182,7 @@ class DeviceConnectionActivity : ComponentActivity() {
 
             Button(
                 onClick = { disconnectFromDevice() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)),
                 modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Text("Disconnect from Device")
@@ -200,3 +195,5 @@ class DeviceConnectionActivity : ComponentActivity() {
         disconnectFromDevice()
     }
 }
+
+

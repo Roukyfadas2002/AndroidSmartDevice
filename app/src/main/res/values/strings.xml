@@ -6,4 +6,6 @@
     <string name="title_activity_bt_interface">BtInterface</string>
     <string name="title_activity_led_controle">LedControle</string>
     <string name="title_activity_bluetooth_service">BluetoothService</string>
+    <string name="title_activity_led_control">LedControlActivity</string>
+    <string name="title_activity_bluetooth_manager">BluetoothManager</string>
 </resources>
