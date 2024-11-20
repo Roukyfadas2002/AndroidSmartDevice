@@ -20,7 +20,12 @@ import java.util.UUID
 
 class DeviceConnectionActivity : ComponentActivity() {
     private var isConnected by mutableStateOf(false)
-    private var notificationCount by mutableStateOf(0)
+    private var notificationCount by mutableStateOf(0)  // Compteur pour notificationCharacteristic
+    private var notificationCountBis by mutableStateOf(0)  // Compteur pour notificationCharacteristicbis
+
+    // Flags pour activer/désactiver les compteurs
+    private var isNotificationEnabled by mutableStateOf(false)
+    private var isNotificationBisEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +67,8 @@ class DeviceConnectionActivity : ComponentActivity() {
                         Log.d("BLE", "LED characteristic not found.")
                     }
 
-                    // Abonnement à la caractéristique 2 du service 3 pour les notifications
+                    // Abonnement à la première caractéristique de notifications
                     val notificationCharacteristic = gatt.services[2]?.characteristics?.get(1)
-                    val notificationCharacteristicbis = gatt.services[3]?.characteristics?.get(0)
                     if (notificationCharacteristic != null) {
                         gatt.setCharacteristicNotification(notificationCharacteristic, true)
                         val descriptor = notificationCharacteristic.getDescriptor(
@@ -74,14 +78,32 @@ class DeviceConnectionActivity : ComponentActivity() {
                         gatt.writeDescriptor(descriptor)
                         Log.d("BLE", "Subscribed to notifications for characteristic 2 of service 3.")
                     }
+
+                    // Abonnement à la deuxième caractéristique de notifications
+                    val notificationCharacteristicbis = gatt.services[3]?.characteristics?.get(0)
+                    if (notificationCharacteristicbis != null) {
+                        gatt.setCharacteristicNotification(notificationCharacteristicbis, true)
+                        val descriptorBis = notificationCharacteristicbis.getDescriptor(
+                            BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        )
+                        descriptorBis?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        gatt.writeDescriptor(descriptorBis)
+                        Log.d("BLE", "Subscribed to notifications for characteristic 1 of service 4.")
+                    }
                 }
             }
 
             override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
                 super.onCharacteristicChanged(gatt, characteristic)
-                // Incrémente le compteur à chaque notification
-                notificationCount++
-                Log.d("BLE", "Notification received. Count: $notificationCount")
+                if (characteristic == gatt.services[2]?.characteristics?.get(1) && isNotificationEnabled) {
+                    // Notification reçue pour la première caractéristique
+                    notificationCount++
+                    Log.d("BLE", "Notification received for characteristic 2. Count: $notificationCount")
+                } else if (characteristic == gatt.services[3]?.characteristics?.get(0) && isNotificationBisEnabled) {
+                    // Notification reçue pour la deuxième caractéristique
+                    notificationCountBis++
+                    Log.d("BLE", "Notification received for characteristic 1. Count: $notificationCountBis")
+                }
             }
         })
     }
@@ -142,10 +164,32 @@ class DeviceConnectionActivity : ComponentActivity() {
                 Text(if (isConnected) "Connected" else "Connect")
             }
 
-            // Affiche le compteur de notifications
+            // Affiche le compteur de notifications pour notificationCharacteristic
             if (isConnected) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Notification Count: $notificationCount", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Notification Count 1: $notificationCount", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+                // Case à cocher pour activer/désactiver le compteur 1
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = isNotificationEnabled,
+                        onCheckedChange = { isNotificationEnabled = it }
+                    )
+                    Text("Enable Notification Count 1", fontSize = 16.sp)
+                }
+
+                // Affiche le compteur de notifications pour notificationCharacteristicbis
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Notification Count 2: $notificationCountBis", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+                // Case à cocher pour activer/désactiver le compteur 2
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = isNotificationBisEnabled,
+                        onCheckedChange = { isNotificationBisEnabled = it }
+                    )
+                    Text("Enable Notification Count 2", fontSize = 16.sp)
+                }
 
                 // Bouton pour accéder au contrôle des LED si connecté
                 Spacer(modifier = Modifier.height(16.dp))
