@@ -43,7 +43,7 @@ class ListeActiviter : ComponentActivity() {
 @Composable
 fun ActivitiesListScreen(modifier: Modifier = Modifier) {
     // Définition de la liste des activités
-    val activities = listOf("Scan BLE", "Configuration", "Historique", "Paramètres")
+    val activities = listOf("Scan BLE", "Test", "Test", "Test")
 
     // Utilise une colonne pour empiler verticalement le texte de titre et la liste des boutons
     Column(
