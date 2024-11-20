@@ -26,14 +26,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidSmartDevice">
         <activity
-            android:name=".BluetoothManager"
-            android:exported="false"
-            android:label="@string/title_activity_bluetooth_manager"
-            android:theme="@style/Theme.AndroidSmartDevice" />
-        <activity
             android:name=".LedControlActivity"
             android:exported="false"
             android:label="@string/title_activity_led_control"
+            android:theme="@style/Theme.AndroidSmartDevice" />
+        <activity
+            android:name=".BluetoothManager"
+            android:exported="false"
+            android:label="@string/title_activity_bluetooth_manager"
             android:theme="@style/Theme.AndroidSmartDevice" />
         <activity
             android:name=".BluetoothService"

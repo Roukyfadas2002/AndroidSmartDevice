@@ -1,7 +1,5 @@
-// Déclaration du package pour organiser le projet
 package fr.isen.villeneuve.androidsmartdevice
 
-// Importations nécessaires pour les fonctionnalités de l'activité et de l'interface Compose
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,11 +7,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,7 +70,7 @@ fun ActivitiesListScreen(modifier: Modifier = Modifier) {
     }
 }
 
-// Fonction Composable pour créer un bouton d'activité
+// Fonction Composable pour créer un bouton d'activité avec la couleur magenta
 @Composable
 fun ActivityButton(activityName: String) {
     val context = LocalContext.current
@@ -86,12 +86,12 @@ fun ActivityButton(activityName: String) {
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF00FF)) // Magenta
     ) {
         Text(text = activityName, fontSize = 18.sp)
     }
 }
-
 
 // Fonction de prévisualisation de l'écran de la liste des activités dans l'éditeur
 @Preview(showBackground = true)
