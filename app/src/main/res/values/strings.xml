@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">AndroidSmartDevice</string>
+    <string name="title_activity_liste_activiter">ListeActiviter</string>
+    <string name="title_activity_scan_ble">ScanBle</string>
+    <string name="title_activity_device_connection">DeviceConnectionActivity</string>
+    <string name="title_activity_bt_interface">BtInterface</string>
+    <string name="title_activity_led_controle">LedControle</string>
+</resources>

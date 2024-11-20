@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Permissions pour Bluetooth classiques -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!-- Permissions pour la localisation (nécessaire pour les scans BLE sur Android < 12) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Permissions spécifiques à Android 12 et supérieur -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        tools:targetApi="31" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:targetApi="31" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADVERTISE"
+        tools:targetApi="31" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AndroidSmartDevice">
+        <activity
+            android:name=".LedControle"
+            android:exported="false"
+            android:label="@string/title_activity_led_controle"
+            android:theme="@style/Theme.AndroidSmartDevice" />
+        <activity
+            android:name=".BtInterface"
+            android:exported="false"
+            android:label="@string/title_activity_bt_interface"
+            android:theme="@style/Theme.AndroidSmartDevice" />
+        <activity
+            android:name=".DeviceConnectionActivity"
+            android:exported="false"
+            android:label="@string/title_activity_device_connection"
+            android:theme="@style/Theme.AndroidSmartDevice" /> <!-- Définition des activités -->
+        <activity
+            android:name=".ScanBle"
+            android:exported="false"
+            android:label="@string/title_activity_scan_ble"
+            android:theme="@style/Theme.AndroidSmartDevice" />
+        <activity
+            android:name=".ListeActiviter"
+            android:exported="false"
+            android:label="@string/title_activity_liste_activiter"
+            android:theme="@style/Theme.AndroidSmartDevice" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.AndroidSmartDevice">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
