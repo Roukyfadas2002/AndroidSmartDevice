@@ -64,6 +64,7 @@ class DeviceConnectionActivity : ComponentActivity() {
 
                     // Abonnement à la caractéristique 2 du service 3 pour les notifications
                     val notificationCharacteristic = gatt.services[2]?.characteristics?.get(1)
+                    val notificationCharacteristicbis = gatt.services[3]?.characteristics?.get(0)
                     if (notificationCharacteristic != null) {
                         gatt.setCharacteristicNotification(notificationCharacteristic, true)
                         val descriptor = notificationCharacteristic.getDescriptor(
