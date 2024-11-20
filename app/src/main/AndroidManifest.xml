@@ -34,22 +34,8 @@
             android:name=".BluetoothManager"
             android:exported="false"
             android:label="@string/title_activity_bluetooth_manager"
-            android:theme="@style/Theme.AndroidSmartDevice" />
-        <activity
-            android:name=".BluetoothService"
-            android:exported="false"
-            android:label="@string/title_activity_bluetooth_service"
-            android:theme="@style/Theme.AndroidSmartDevice" />
-        <activity
-            android:name=".LedControle"
-            android:exported="false"
-            android:label="@string/title_activity_led_controle"
-            android:theme="@style/Theme.AndroidSmartDevice" />
-        <activity
-            android:name=".BtInterface"
-            android:exported="false"
-            android:label="@string/title_activity_bt_interface"
-            android:theme="@style/Theme.AndroidSmartDevice" />
+            android:theme="@style/Theme.AndroidSmartDevice"
+            tools:ignore="Instantiatable" />
         <activity
             android:name=".DeviceConnectionActivity"
             android:exported="false"
