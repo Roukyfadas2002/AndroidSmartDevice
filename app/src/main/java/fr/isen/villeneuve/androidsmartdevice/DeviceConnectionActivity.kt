@@ -1,158 +1,120 @@
 package fr.isen.villeneuve.androidsmartdevice
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
-import android.content.Intent
+import android.bluetooth.BluetoothProfile
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import fr.isen.villeneuve.androidsmartdevice.ui.theme.AndroidSmartDeviceTheme
-import java.util.*
+import androidx.core.app.ActivityCompat
 
 class DeviceConnectionActivity : ComponentActivity() {
-
-    private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    private var device: BluetoothDevice? = null
-    private var deviceUUID: UUID? = null
     private var bluetoothGatt: BluetoothGatt? = null
-
-    private var connectionStatus by mutableStateOf("Disconnected")
-    private var deviceInfo by mutableStateOf<DeviceInfo?>(null)
-
-    private val handler = Handler(Handler.Callback { msg ->
-        when (msg.what) {
-            CONNECTION_SUCCESS -> {
-                connectionStatus = "Connected"
-                showToast("Connection successful")
-                navigateToLedControle()
-            }
-            CONNECTION_FAILED -> {
-                connectionStatus = "Connection Failed"
-                showToast("Connection failed")
-            }
-            else -> Unit
-        }
-        true
-    })
-
-    companion object {
-        const val CONNECTION_SUCCESS = 1
-        const val CONNECTION_FAILED = 2
-    }
+    private var bluetoothDevice: BluetoothDevice? = null
+    private var ledCharacteristic: BluetoothGattCharacteristic? = null
+    private var isConnected by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Récupération des données envoyées depuis l'activité précédente
+        // Récupérer les données envoyées depuis ScanActivity
         val deviceName = intent.getStringExtra("deviceName")
         val deviceAddress = intent.getStringExtra("deviceAddress")
-        val uuidList = intent.getStringArrayListExtra("uuidList")
 
-        device = bluetoothAdapter?.getRemoteDevice(deviceAddress)
-        deviceUUID = uuidList?.firstOrNull()?.let { UUID.fromString(it) }
-
-        deviceInfo = DeviceInfo(
-            name = deviceName ?: "Unknown Device",
-            address = device?.address ?: "Unknown Address",
-            type = when (device?.type) {
-                BluetoothDevice.DEVICE_TYPE_CLASSIC -> "Classic"
-                BluetoothDevice.DEVICE_TYPE_LE -> "Low Energy (LE)"
-                BluetoothDevice.DEVICE_TYPE_DUAL -> "Dual Mode"
-                else -> "Unknown"
-            },
-            uuids = uuidList ?: listOf("No UUIDs found")
-        )
+        // Initialiser l'appareil Bluetooth
+        bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
 
         setContent {
-            AndroidSmartDeviceTheme {
-                DeviceConnectionScreen(
-                    deviceName = deviceInfo?.name ?: "Unknown Device",
-                    deviceInfo = deviceInfo,
-                    connectionStatus = connectionStatus,
-                    onConnectClick = { connectToDevice() },
-                    onDisconnectClick = { disconnectDevice() }
-                )
-            }
+            DeviceScreen(deviceName = deviceName, deviceAddress = deviceAddress)
         }
     }
 
     private fun connectToDevice() {
-        if (device == null || deviceUUID == null) {
-            showToast("Invalid device or UUID")
-            return
-        }
-        connectionStatus = "Connecting..."
-        bluetoothGatt = device?.connectGatt(this, false, gattCallback)
+        bluetoothGatt = bluetoothDevice?.connectGatt(this, false, object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    Log.d("BLE", "Connected to GATT server. Discovering services...")
+                    gatt.discoverServices()
+                    isConnected = true
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.d("BLE", "Disconnected from GATT server.")
+                    isConnected = false
+                }
+            }
+
+            override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    val services = gatt.services
+                    ledCharacteristic = services?.get(2)?.characteristics?.get(0)
+                    Log.d("BLE", "Services discovered: ${services.map { it.uuid }}")
+                } else {
+                    Log.e("BLE", "Service discovery failed with status $status")
+                }
+            }
+
+            override fun onCharacteristicWrite(
+                gatt: BluetoothGatt,
+                characteristic: BluetoothGattCharacteristic,
+                status: Int
+            ) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    Log.d("BLE", "Characteristic written successfully: ${characteristic.uuid}")
+                } else {
+                    Log.e("BLE", "Failed to write characteristic: ${characteristic.uuid}")
+                }
+            }
+        })
     }
 
-    private fun disconnectDevice() {
-        connectionStatus = "Disconnected"
+    private fun disconnectFromDevice() {
         bluetoothGatt?.disconnect()
         bluetoothGatt?.close()
+        bluetoothGatt = null
+        Log.d("BLE", "Disconnected from device.")
+        isConnected = false
+        Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
+
+        // Retourner à la page précédente
         finish()
     }
 
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun navigateToLedControle() {
-        val intent = Intent(this, LedControle::class.java)
-        startActivity(intent)
-        finish()
-    }
-
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            super.onConnectionStateChange(gatt, status, newState)
-            when (newState) {
-                BluetoothGatt.STATE_CONNECTED -> {
-                    Log.d("Bluetooth", "Connected to GATT server.")
-                    gatt.discoverServices()
-                    handler.sendMessage(handler.obtainMessage(CONNECTION_SUCCESS))
-                }
-                BluetoothGatt.STATE_DISCONNECTED -> {
-                    Log.d("Bluetooth", "Disconnected from GATT server.")
-                    handler.sendMessage(handler.obtainMessage(CONNECTION_FAILED))
-                }
-                else -> Log.d("Bluetooth", "Connection state changed: $newState")
+    private fun writeToLEDCharacteristic(state: LEDStateEnum) {
+        if (ledCharacteristic != null) {
+            ledCharacteristic?.value = state.hex
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Handle missing permission
+                return
             }
-        }
-
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.d("Bluetooth", "Services discovered.")
-            } else {
-                Log.w("Bluetooth", "Service discovery failed with status $status")
-            }
+            bluetoothGatt?.writeCharacteristic(ledCharacteristic)
+            Log.d("BLE", "LED state set to: ${state.name}")
+        } else {
+            Log.e("BLE", "LED characteristic not found.")
         }
     }
 
     @Composable
-    fun DeviceConnectionScreen(
-        deviceName: String,
-        deviceInfo: DeviceInfo?,
-        connectionStatus: String,
-        onConnectClick: () -> Unit,
-        onDisconnectClick: () -> Unit
-    ) {
+    fun DeviceScreen(deviceName: String?, deviceAddress: String?) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -160,45 +122,81 @@ class DeviceConnectionActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = "Connecting to $deviceName",
-                style = TextStyle(fontSize = 24.sp, color = Color.Black),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                text = "Status: $connectionStatus",
-                style = TextStyle(fontSize = 18.sp, color = when (connectionStatus) {
-                    "Connecting..." -> Color.Yellow
-                    "Connected" -> Color.Green
-                    "Disconnected" -> Color.Red
-                    else -> Color.Gray
-                }),
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-            deviceInfo?.let {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text("Name: ${it.name}", style = TextStyle(fontSize = 16.sp))
-                    Text("Address: ${it.address}", style = TextStyle(fontSize = 16.sp))
-                    Text("Type: ${it.type}", style = TextStyle(fontSize = 16.sp))
-                    Text("UUIDs: ${it.uuids.joinToString()}", style = TextStyle(fontSize = 16.sp))
-                }
-            }
+            Text("Device Connection Status", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Device Name: ${deviceName ?: "Unknown"}", fontSize = 18.sp)
+            Text("Device Address: ${deviceAddress ?: "Unknown"}", fontSize = 18.sp)
+
             Spacer(modifier = Modifier.height(32.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Button(onClick = onConnectClick) {
-                    Text("Connect")
-                }
-                Button(onClick = onDisconnectClick) {
-                    Text("Disconnect")
-                }
+
+            // Connection status indicator
+            Text(
+                text = if (isConnected) "Connected" else "Disconnected",
+                color = if (isConnected) Color.Green else Color.Red,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { connectToDevice() },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Connect to Device")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_1) },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Turn On LED 1")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_2) },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Turn On LED 2")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { writeToLEDCharacteristic(LEDStateEnum.LED_3) },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Turn On LED 3")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { writeToLEDCharacteristic(LEDStateEnum.NONE) },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Turn Off LED")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { disconnectFromDevice() },
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("Disconnect from Device")
             }
         }
     }
-}
 
-data class DeviceInfo(
-    val name: String,
-    val address: String,
-    val type: String,
-    val uuids: List<String>
-)
+    override fun onDestroy() {
+        super.onDestroy()
+        disconnectFromDevice()
+    }
+}
